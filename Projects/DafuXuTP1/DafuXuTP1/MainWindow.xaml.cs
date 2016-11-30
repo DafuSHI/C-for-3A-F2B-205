@@ -22,47 +22,65 @@ namespace DafuXuTP1
     /// </summary>
     public partial class MainWindow : Window
     {
-        List<Process> list = new List<Process>();
+        private List<Process> list;
+        private int ballon_num;
+        private int premier_num;
+        private const int max_instance_num = 5;
+
         public MainWindow()
         {
             InitializeComponent();
-            //listBox.ItemsSource = list;
-            
-            
+            this.list = new List<Process>();
         }
 
-       
-
-        
-        private void listBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void killall()
         {
-            //listBox.Items.Refresh();
+            int num = list.Count();
+            while (num != 0)
+            {
+                Process last = list.Last();
+                listBox.Items.Remove(last.StartInfo.FileName + " " + last.Id);
+                last.Kill();
+                list.Remove(last);
+                num--;
+            }
+            this.ballon_num = 0;
+            this.premier_num = 0;
         }
 
         private void MenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Process p = new Process();
-            p.StartInfo = new ProcessStartInfo();
-            p.StartInfo.FileName = "Premier.exe";
-            list.Add(p);
-            p.Start();
-            //listBox.Items.Refresh();
-            listBox.Items.Add(p.StartInfo.FileName + " " + p.Id);
-
-            //MessageBox.Show(p.SessionId+ " " + p.Id,"ProcessID");
+            if (this.premier_num < max_instance_num)
+            {
+                Process p = new Process();
+                p.StartInfo = new ProcessStartInfo();
+                p.StartInfo.FileName = "Premier.exe";
+                list.Add(p);
+                this.premier_num++;
+                p.Start();
+                listBox.Items.Add(p.StartInfo.FileName + " " + p.Id);
+            }
+            else {
+                MessageBox.Show("Error: maximum 5 Premier processes.");
+            }
+            
         }
 
         private void MenuItem_Click_1(object sender, RoutedEventArgs e)
         {
-            Process p = new Process();
-            p.StartInfo = new ProcessStartInfo();
-            p.StartInfo.FileName = "Ballon.exe";
-            list.Add(p);
-            p.Start();
-            //listBox.Items.Refresh();
-            listBox.Items.Add(p.StartInfo.FileName + " " + p.Id);
-
-            //MessageBox.Show(p.SessionId+ " " + p.Id,"ProcessID");
+            if (this.ballon_num < max_instance_num)
+            {
+                Process p = new Process();
+                p.StartInfo = new ProcessStartInfo();
+                p.StartInfo.FileName = "Ballon.exe";
+                list.Add(p);
+                this.ballon_num++;
+                p.Start();
+                listBox.Items.Add(p.StartInfo.FileName + " " + p.Id);
+            }
+            else {
+                MessageBox.Show("Error: maximum 5 Ballon processes.");
+            }
         }
 
         private void MenuItem_Click_2(object sender, RoutedEventArgs e)
@@ -77,6 +95,7 @@ namespace DafuXuTP1
             {
                 lp.Kill();
                 list.Remove(lp);
+                this.ballon_num--;
                 listBox.Items.Remove(lp.StartInfo.FileName + " " + lp.Id);
             }
             else MessageBox.Show("Error: No such process");
@@ -95,9 +114,13 @@ namespace DafuXuTP1
             {
                 lp.Kill();
                 list.Remove(lp);
+                this.premier_num--;
                 listBox.Items.Remove(lp.StartInfo.FileName + " " + lp.Id);
             }
-            else MessageBox.Show("Error: No such process");
+            else
+            {
+                MessageBox.Show("Error: No such process");
+            }
         }
 
         private void MenuItem_Click_5(object sender, RoutedEventArgs e)
@@ -106,36 +129,48 @@ namespace DafuXuTP1
             {
                 Process last = list.Last();
                 listBox.Items.Remove(last.StartInfo.FileName + " " + last.Id);
+                if (last.ProcessName.Equals("Premier"))
+                {
+                    this.premier_num--;
+                }
+                else if (last.ProcessName.Equals("Ballon"))
+                {
+                    this.ballon_num--;
+                }
                 last.Kill();
                 list.Remove(last);
-            }else MessageBox.Show("Error: There is no Process running now");
-
+            }
+            else
+            {
+                MessageBox.Show("Error: There is no Process running now");
+            }
         }
 
         private void MenuItem_Click_6(object sender, RoutedEventArgs e)
         {
-            int num = list.Count();
-            while (num != 0) {
-                Process last = list.Last();
-                listBox.Items.Remove(last.StartInfo.FileName + " " + last.Id);
-                last.Kill();
-                list.Remove(last);
-                num--;
-            }
+            killall();
         }
 
         private void MenuItem_Click_3(object sender, RoutedEventArgs e)
         {
-            int num = list.Count();
-            while (num != 0)
-            {
-                Process last = list.Last();
-                listBox.Items.Remove(last.StartInfo.FileName + " " + last.Id);
-                last.Kill();
-                list.Remove(last);
-                num--;
-            }
+            killall();
             System.Environment.Exit(1);
+        }
+
+        private void menu_create_MouseEnter(object sender, RoutedEventArgs e)
+        {
+            create_premier.FontStyle = (this.premier_num < max_instance_num) ? FontStyles.Normal : FontStyles.Italic;
+            create_ballon.FontStyle = (this.ballon_num < max_instance_num) ? FontStyles.Normal : FontStyles.Italic;
+        }
+
+        private void menu_delete_MouseEnter(object sender, RoutedEventArgs e)
+        {
+            int process_num = this.list.Count();
+
+            delete_premier.IsEnabled = (this.premier_num > 0) ? true: false;
+            delete_ballon.IsEnabled = (this.ballon_num > 0) ? true : false;
+            delete_last.IsEnabled = (process_num > 0) ? true : false;
+            delete_all.IsEnabled = (process_num > 0) ? true : false;
         }
     }
 }
